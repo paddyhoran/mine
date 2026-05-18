@@ -1,0 +1,32 @@
+[package]
+name = "lm_providers"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+
+async-trait = "0.1"
+futures = "0.3"
+schemars = "1.2.1"
+jsonschema = "0.46.0"
+once_cell = "1.20"
+
+reqwest = { version = "0.13.2", features = ["json", "stream"], optional = true }
+
+candle-core = { version = "0.8", optional = true }
+candle-transformers = { version = "0.8", optional = true }
+hf-hub = { version = "0.3", optional = true, features = ["tokio"] }
+tokenizers = { version = "0.20", optional = true }
+tokio = { version = "1", features = ["rt", "sync"], optional = true }
+anyhow = { version = "1.0", optional = true }
+
+[features]
+default = ["local-candle"]
+http-client = ["reqwest"]
+local-candle = ["candle-core", "candle-transformers", "hf-hub", "tokenizers", "tokio", "anyhow"]

@@ -8,11 +8,11 @@ use candle_transformers::models::quantized_llama::ModelWeights;
 use hf_hub::{api::sync::Api, Repo, RepoType};
 use tokenizers::Tokenizer;
 
+use super::InputSemantics;
 use crate::error::ProviderError;
+use crate::provider::ProviderTrait;
 use crate::stream::{Context, EventStream, StreamOptions};
 use crate::types::{AssistantContent, AssistantMessage, Model, StopReason, Usage};
-use crate::Provider;
-use super::InputSemantics;
 
 pub struct LocalCandleProvider {
     model_weights: Arc<Mutex<ModelWeights>>,
@@ -21,33 +21,31 @@ pub struct LocalCandleProvider {
 }
 
 impl LocalCandleProvider {
-    pub fn new() -> Result<Self, ProviderError> {
+    pub fn new(
+        model_repo: impl Into<String>,
+        model_file: impl Into<String>,
+        tokenizer_repo: impl Into<String>,
+    ) -> Result<Self, ProviderError> {
         let api = Api::new().map_err(|e| ProviderError::Other(format!("HF API error: {}", e)))?;
-        
-        let repo = api.repo(Repo::new(
-            "lmstudio-community/Llama-3.2-1B-Instruct-GGUF".to_string(),
-            RepoType::Model,
-        ));
+
+        let repo = api.repo(Repo::new(model_repo.into(), RepoType::Model));
         let model_path = repo
-            .get("Llama-3.2-1B-Instruct-Q4_K_M.gguf")
+            .get(&model_file.into())
             .map_err(|e| ProviderError::Other(format!("Failed to download model: {}", e)))?;
 
-        let tokenizer_repo = api.repo(Repo::new(
-            "unsloth/Llama-3.2-1B-Instruct".to_string(),
-            RepoType::Model,
-        ));
+        let tokenizer_repo = api.repo(Repo::new(tokenizer_repo.into(), RepoType::Model));
         let tokenizer_path = tokenizer_repo
             .get("tokenizer.json")
             .map_err(|e| ProviderError::Other(format!("Failed to download tokenizer: {}", e)))?;
-        
+
         let tokenizer = Tokenizer::from_file(tokenizer_path)
             .map_err(|e| ProviderError::Other(format!("Failed to load tokenizer: {}", e)))?;
 
         let device = Device::Cpu;
-        
+
         let mut file = std::fs::File::open(&model_path)
             .map_err(|e| ProviderError::Other(format!("Failed to open model file: {}", e)))?;
-        
+
         let model_weights = ModelWeights::from_gguf(
             candle_core::quantized::gguf_file::Content::read(&mut file)
                 .map_err(|e| ProviderError::Other(format!("Failed to read GGUF: {}", e)))?,
@@ -106,23 +104,23 @@ impl LocalCandleProvider {
             if next_token == eos_token_id {
                 break;
             }
-            
+
             input_tokens.push(next_token);
-            
+
             let decoded = self
                 .tokenizer
                 .decode(&[next_token], false)
                 .map_err(|e| ProviderError::Other(format!("Decode error: {}", e)))?;
-            
+
             generated_text.push_str(&decoded);
         }
-        
+
         Ok(generated_text)
     }
 }
 
 #[async_trait]
-impl Provider for LocalCandleProvider {
+impl ProviderTrait for LocalCandleProvider {
     fn provider_id(&self) -> &str {
         "local-candle"
     }
@@ -141,7 +139,7 @@ impl Provider for LocalCandleProvider {
         let full_prompt = InputSemantics::Llama3.build_prompt(context)?;
 
         let generated = self.generate_text(&full_prompt, 512)?;
-        
+
         let message = AssistantMessage {
             content: vec![AssistantContent::Text {
                 text: generated,
@@ -156,7 +154,7 @@ impl Provider for LocalCandleProvider {
             error_message: None,
             timestamp: SystemTime::now(),
         };
-        
+
         let events = vec![
             Ok(crate::stream::StreamEvent::Start {
                 partial: message.clone(),
@@ -166,7 +164,7 @@ impl Provider for LocalCandleProvider {
                 message,
             }),
         ];
-        
+
         Ok(Box::pin(stream::iter(events)))
     }
 

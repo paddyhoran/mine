@@ -3,10 +3,10 @@ use std::sync::{Arc, RwLock};
 
 use crate::error::RegistryError;
 
-use super::Provider;
+use super::ProviderTrait;
 
 pub struct ProviderRegistry {
-    providers: Arc<RwLock<HashMap<String, Arc<dyn Provider>>>>,
+    providers: Arc<RwLock<HashMap<String, Arc<dyn ProviderTrait>>>>,
 }
 
 impl ProviderRegistry {
@@ -16,7 +16,7 @@ impl ProviderRegistry {
         }
     }
 
-    pub fn register(&self, provider: Arc<dyn Provider>) -> Result<(), RegistryError> {
+    pub fn register(&self, provider: Arc<dyn ProviderTrait>) -> Result<(), RegistryError> {
         let mut providers = self
             .providers
             .write()
@@ -32,7 +32,7 @@ impl ProviderRegistry {
         Ok(())
     }
 
-    pub fn get(&self, provider_id: &str) -> Result<Arc<dyn Provider>, RegistryError> {
+    pub fn get(&self, provider_id: &str) -> Result<Arc<dyn ProviderTrait>, RegistryError> {
         let providers = self
             .providers
             .read()

@@ -6,7 +6,7 @@ use crate::stream::{Context, EventStream, SimpleStreamOptions, StreamEvent, Stre
 use crate::types::{AssistantMessage, Model};
 
 #[async_trait]
-pub trait Provider: Send + Sync {
+pub trait ProviderTrait: Send + Sync {
     fn provider_id(&self) -> &str;
 
     fn api_id(&self) -> &str;

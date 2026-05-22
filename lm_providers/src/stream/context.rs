@@ -1,10 +1,8 @@
 use crate::types::{Message, Tool};
 
-
 /// The context of the model.
 #[derive(Debug, Clone)]
 pub struct Context {
-
     /// The system prompt for the model.
     pub system_prompt: Option<String>,
 
@@ -16,7 +14,6 @@ pub struct Context {
 }
 
 impl Context {
-
     /// Creates a new empty context.
     pub fn new() -> Self {
         Self {
@@ -35,7 +32,7 @@ impl Context {
     }
 
     /// Updates the current messages.
-    /// 
+    ///
     /// This method replaces the existing messages.
     pub fn with_messages(mut self, messages: Vec<Message>) -> Self {
         self.messages = messages;
@@ -43,7 +40,7 @@ impl Context {
     }
 
     /// Updates the tools available to the model.
-    /// 
+    ///
     /// This method replaces the existing tools available to the model.
     pub fn with_tools(mut self, tools: Vec<Tool>) -> Self {
         self.tools = tools;

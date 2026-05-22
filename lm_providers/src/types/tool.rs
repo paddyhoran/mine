@@ -46,8 +46,7 @@ impl ToolBuilder {
         let name = name.into();
 
         if let serde_json::Value::Object(ref mut props) = self.parameters {
-            if let Some(serde_json::Value::Object(ref mut properties)) =
-                props.get_mut("properties")
+            if let Some(serde_json::Value::Object(ref mut properties)) = props.get_mut("properties")
             {
                 let mut schema_value = serde_json::to_value(&schema).unwrap();
                 if let serde_json::Value::Object(ref mut schema_obj) = schema_value {

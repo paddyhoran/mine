@@ -1,7 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-use super::Model;
-
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Default)]
 pub struct Usage {
     pub input: u64,
@@ -34,15 +32,4 @@ pub enum StopReason {
     ToolUse,
     Error,
     Aborted,
-}
-
-impl Usage {
-    pub fn calculate_cost(&mut self, model: &Model) {
-        self.cost.input = (model.cost.input / 1_000_000.0) * self.input as f64;
-        self.cost.output = (model.cost.output / 1_000_000.0) * self.output as f64;
-        self.cost.cache_read = (model.cost.cache_read / 1_000_000.0) * self.cache_read as f64;
-        self.cost.cache_write = (model.cost.cache_write / 1_000_000.0) * self.cache_write as f64;
-        self.cost.total =
-            self.cost.input + self.cost.output + self.cost.cache_read + self.cost.cache_write;
-    }
 }

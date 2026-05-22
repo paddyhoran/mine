@@ -21,9 +21,8 @@ pub fn validate_tool_arguments(
     tool: &Tool,
     tool_call: &ToolCall,
 ) -> Result<serde_json::Value, ProviderError> {
-    let schema = Validator::new(&tool.parameters).map_err(|e| {
-        ProviderError::ToolValidationError(format!("Invalid schema: {}", e))
-    })?;
+    let schema = Validator::new(&tool.parameters)
+        .map_err(|e| ProviderError::ToolValidationError(format!("Invalid schema: {}", e)))?;
 
     if let Err(error) = schema.validate(&tool_call.arguments) {
         return Err(ProviderError::ToolValidationError(format!(
@@ -103,9 +102,6 @@ mod tests {
         };
 
         let result = validate_tool_call(&[tool], &tool_call);
-        assert!(matches!(
-            result,
-            Err(ProviderError::ToolValidationError(_))
-        ));
+        assert!(matches!(result, Err(ProviderError::ToolValidationError(_))));
     }
 }

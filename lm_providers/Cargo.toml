@@ -23,10 +23,15 @@ candle-core = { version = "0.8", optional = true }
 candle-transformers = { version = "0.8", optional = true }
 hf-hub = { version = "0.3", optional = true, features = ["tokio"] }
 tokenizers = { version = "0.20", optional = true }
-tokio = { version = "1", features = ["rt", "sync"], optional = true }
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "sync", "macros"], optional = true }
 anyhow = { version = "1.0", optional = true }
 
+aws-config = { version = "1.5", optional = true }
+aws-sdk-bedrockruntime = { version = "1.59", optional = true }
+bytes = { version = "1.8", optional = true }
+
 [features]
-default = ["local-candle"]
+default = ["aws-bedrock"]
 http-client = ["reqwest"]
 local-candle = ["candle-core", "candle-transformers", "hf-hub", "tokenizers", "tokio", "anyhow"]
+aws-bedrock = ["aws-config", "aws-sdk-bedrockruntime", "tokio", "bytes"]

@@ -10,22 +10,22 @@ use crate::types::{AssistantContent, Message, UserContent};
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InputSemantics {
     /// Llama 3 chat template format.
-    /// 
+    ///
     /// Uses tokens like <|begin_of_text|>, <|start_header_id|>, etc.
     Llama3,
 
     /// ChatML format used by many models.
-    /// 
+    ///
     /// Uses tokens like <|im_start|> and <|im_end|>
     ChatML,
 
     /// Llama 2 chat template format.
-    /// 
+    ///
     /// Uses tokens like <s>, [INST], and <</SYS>>
     Llama2,
 
     /// Mistral chat template format.
-    /// 
+    ///
     /// Uses tokens like <s> and [INST]
     Mistral,
 }
@@ -46,7 +46,10 @@ impl InputSemantics {
     fn format_system_prompt(&self, prompt: &str) -> String {
         match self {
             InputSemantics::Llama3 => {
-                format!("<|start_header_id|>system<|end_header_id|>\n\n{}<|eot_id|>", prompt)
+                format!(
+                    "<|start_header_id|>system<|end_header_id|>\n\n{}<|eot_id|>",
+                    prompt
+                )
             }
             InputSemantics::ChatML => {
                 format!("<|im_start|>system\n{}<|im_end|>\n", prompt)
@@ -65,7 +68,10 @@ impl InputSemantics {
     fn format_user(&self, content: &str) -> String {
         match self {
             InputSemantics::Llama3 => {
-                format!("<|start_header_id|>user<|end_header_id|>\n\n{}<|eot_id|>", content)
+                format!(
+                    "<|start_header_id|>user<|end_header_id|>\n\n{}<|eot_id|>",
+                    content
+                )
             }
             InputSemantics::ChatML => {
                 format!("<|im_start|>user\n{}<|im_end|>\n", content)
@@ -83,7 +89,10 @@ impl InputSemantics {
     fn format_assistant(&self, content: &str) -> String {
         match self {
             InputSemantics::Llama3 => {
-                format!("<|start_header_id|>assistant<|end_header_id|>\n\n{}<|eot_id|>", content)
+                format!(
+                    "<|start_header_id|>assistant<|end_header_id|>\n\n{}<|eot_id|>",
+                    content
+                )
             }
             InputSemantics::ChatML => {
                 format!("<|im_start|>assistant\n{}<|im_end|>\n", content)
@@ -103,15 +112,9 @@ impl InputSemantics {
             InputSemantics::Llama3 => {
                 "<|start_header_id|>assistant<|end_header_id|>\n\n".to_string()
             }
-            InputSemantics::ChatML => {
-                "<|im_start|>assistant\n".to_string()
-            }
-            InputSemantics::Llama2 => {
-                " ".to_string()
-            }
-            InputSemantics::Mistral => {
-                " ".to_string()
-            }
+            InputSemantics::ChatML => "<|im_start|>assistant\n".to_string(),
+            InputSemantics::Llama2 => " ".to_string(),
+            InputSemantics::Mistral => " ".to_string(),
         }
     }
 
@@ -198,12 +201,10 @@ mod tests {
         let semantics = InputSemantics::Llama3;
         let mut context = Context::new();
         context.system_prompt = Some("You are a helpful assistant.".to_string());
-        context.messages = vec![
-            Message::User(UserMessage {
-                content: UserContent::Text("Hello!".to_string()),
-                timestamp: SystemTime::now(),
-            }),
-        ];
+        context.messages = vec![Message::User(UserMessage {
+            content: UserContent::Text("Hello!".to_string()),
+            timestamp: SystemTime::now(),
+        })];
 
         let prompt = semantics.build_prompt(&context).unwrap();
 
@@ -224,8 +225,14 @@ mod tests {
     #[test]
     fn test_chatml_format() {
         let semantics = InputSemantics::ChatML;
-        assert_eq!(semantics.format_user("test"), "<|im_start|>user\ntest<|im_end|>\n");
-        assert_eq!(semantics.format_assistant("response"), "<|im_start|>assistant\nresponse<|im_end|>\n");
+        assert_eq!(
+            semantics.format_user("test"),
+            "<|im_start|>user\ntest<|im_end|>\n"
+        );
+        assert_eq!(
+            semantics.format_assistant("response"),
+            "<|im_start|>assistant\nresponse<|im_end|>\n"
+        );
     }
 
     #[test]

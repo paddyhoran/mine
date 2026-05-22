@@ -1,40 +1,25 @@
-#[cfg(feature = "local-candle")]
 use async_trait::async_trait;
-#[cfg(feature = "local-candle")]
 use futures::stream;
-#[cfg(feature = "local-candle")]
 use std::sync::{Arc, Mutex};
-#[cfg(feature = "local-candle")]
 use std::time::SystemTime;
 
-#[cfg(feature = "local-candle")]
 use candle_core::{Device, Tensor};
-#[cfg(feature = "local-candle")]
 use candle_transformers::models::quantized_llama::ModelWeights;
-#[cfg(feature = "local-candle")]
 use hf_hub::{api::sync::Api, Repo, RepoType};
-#[cfg(feature = "local-candle")]
 use tokenizers::Tokenizer;
 
-#[cfg(feature = "local-candle")]
 use crate::error::ProviderError;
-#[cfg(feature = "local-candle")]
 use crate::stream::{Context, EventStream, StreamOptions};
-#[cfg(feature = "local-candle")]
 use crate::types::{AssistantContent, AssistantMessage, Model, StopReason, Usage};
-#[cfg(feature = "local-candle")]
 use crate::Provider;
-#[cfg(feature = "local-candle")]
 use super::InputSemantics;
 
-#[cfg(feature = "local-candle")]
 pub struct LocalCandleProvider {
     model_weights: Arc<Mutex<ModelWeights>>,
     tokenizer: Arc<Tokenizer>,
     device: Device,
 }
 
-#[cfg(feature = "local-candle")]
 impl LocalCandleProvider {
     pub fn new() -> Result<Self, ProviderError> {
         let api = Api::new().map_err(|e| ProviderError::Other(format!("HF API error: {}", e)))?;
@@ -136,7 +121,6 @@ impl LocalCandleProvider {
     }
 }
 
-#[cfg(feature = "local-candle")]
 #[async_trait]
 impl Provider for LocalCandleProvider {
     fn provider_id(&self) -> &str {

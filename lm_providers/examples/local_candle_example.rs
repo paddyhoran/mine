@@ -12,7 +12,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Model loaded successfully!\n");
     
     let model = Model {
-        id: "llama-3.2-1b-instruct".to_string(),
         name: "Llama 3.2 1B Instruct".to_string(),
         api: "local-candle".to_string(),
         provider: "local-candle".to_string(),

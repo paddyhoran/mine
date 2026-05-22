@@ -1,3 +1,4 @@
+//! Abstrations over input semantics for difference model families.
 use crate::error::ProviderError;
 use crate::stream::Context;
 use crate::types::{AssistantContent, Message, UserContent};
@@ -8,19 +9,23 @@ use crate::types::{AssistantContent, Message, UserContent};
 /// for a specific model family's chat template.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InputSemantics {
-    /// Llama 3 chat template format
+    /// Llama 3 chat template format.
+    /// 
     /// Uses tokens like <|begin_of_text|>, <|start_header_id|>, etc.
     Llama3,
 
-    /// ChatML format used by many models
+    /// ChatML format used by many models.
+    /// 
     /// Uses tokens like <|im_start|> and <|im_end|>
     ChatML,
 
-    /// Llama 2 chat template format
+    /// Llama 2 chat template format.
+    /// 
     /// Uses tokens like <s>, [INST], and <</SYS>>
     Llama2,
 
-    /// Mistral chat template format
+    /// Mistral chat template format.
+    /// 
     /// Uses tokens like <s> and [INST]
     Mistral,
 }
@@ -36,8 +41,9 @@ impl InputSemantics {
         }
     }
 
-    /// Formats a system prompt according to this format.
-    fn format_system(&self, prompt: &str) -> String {
+    /// Formats a system prompt with the special tokens and markers that indicates system
+    /// prompts to the model.
+    fn format_system_prompt(&self, prompt: &str) -> String {
         match self {
             InputSemantics::Llama3 => {
                 format!("<|start_header_id|>system<|end_header_id|>\n\n{}<|eot_id|>", prompt)
@@ -55,7 +61,7 @@ impl InputSemantics {
         }
     }
 
-    /// Formats a user message according to this format.
+    /// Formats a user message inserting the tokens/markers expected by the model.
     fn format_user(&self, content: &str) -> String {
         match self {
             InputSemantics::Llama3 => {
@@ -73,7 +79,7 @@ impl InputSemantics {
         }
     }
 
-    /// Formats a complete assistant message according to this format.
+    /// Formats a complete assistant message inserting tokens/markers expected by the model.
     fn format_assistant(&self, content: &str) -> String {
         match self {
             InputSemantics::Llama3 => {
@@ -138,7 +144,7 @@ impl InputSemantics {
 
         // Add system prompt if present
         if let Some(system) = &context.system_prompt {
-            prompt.push_str(&self.format_system(system));
+            prompt.push_str(&self.format_system_prompt(system));
         }
 
         // Add messages
@@ -232,7 +238,7 @@ mod tests {
     #[test]
     fn test_mistral_no_system() {
         let semantics = InputSemantics::Mistral;
-        assert_eq!(semantics.format_system("system prompt"), "");
+        assert_eq!(semantics.format_system_prompt("system prompt"), "");
     }
 
     #[test]

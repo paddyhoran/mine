@@ -165,7 +165,7 @@ impl Provider for LocalCandleProvider {
             }],
             api: self.api_id().to_string(),
             provider: self.provider_id().to_string(),
-            model: model.id.clone(),
+            model: model.name.clone(),
             response_id: None,
             usage: Usage::default(),
             stop_reason: StopReason::Stop,

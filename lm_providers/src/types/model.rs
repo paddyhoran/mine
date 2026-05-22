@@ -4,9 +4,6 @@ use std::collections::HashMap;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Model {
 
-    /// The unique ID of this model.
-    pub id: String,
-
     /// The display name for the model.
     pub name: String,
 

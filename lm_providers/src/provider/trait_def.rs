@@ -33,6 +33,7 @@ pub trait ProviderTrait: Send + Sync {
         context: &Context,
         options: StreamOptions,
     ) -> Result<AssistantMessage, ProviderError> {
+        dbg!("In complete");
         let mut stream = self.stream(model, context, options).await?;
         let mut final_message = None;
 

@@ -5,9 +5,9 @@ pub mod types;
 pub mod validation;
 
 pub use error::{ProviderError, RegistryError};
+pub use provider::semantics::*;
 pub use provider::{
-    global_registry, InputSemantics, Provider, ProviderDefinition, ProviderFeature,
-    ProviderRegistry, ProviderTrait,
+    global_registry, Provider, ProviderDefinition, ProviderFeature, ProviderRegistry, ProviderTrait,
 };
 pub use stream::{
     CacheRetention, Context, EventStream, SimpleStreamOptions, StreamEvent, StreamOptions,

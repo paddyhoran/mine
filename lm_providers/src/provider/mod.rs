@@ -1,5 +1,4 @@
 mod definition;
-mod input_semantics;
 mod registry;
 mod trait_def;
 
@@ -9,11 +8,14 @@ pub mod local_candle;
 #[cfg(feature = "aws-bedrock")]
 pub mod bedrock;
 
+#[cfg(feature = "http-client")]
+pub mod openai;
+pub mod semantics;
+
 use crate::error::ProviderError;
 use crate::stream::{Context, EventStream, SimpleStreamOptions, StreamOptions};
 use crate::types::{AssistantMessage, Model};
 pub use definition::ProviderDefinition;
-pub use input_semantics::InputSemantics;
 pub use registry::{global_registry, ProviderRegistry};
 use std::sync::Arc;
 pub use trait_def::{ProviderFeature, ProviderTrait};
@@ -23,6 +25,9 @@ pub use local_candle::LocalCandleProvider;
 
 #[cfg(feature = "aws-bedrock")]
 pub use bedrock::BedrockProvider;
+
+#[cfg(feature = "http-client")]
+pub use openai::OpenAIProvider;
 
 pub struct Provider {
     inner: Arc<dyn ProviderTrait>,
@@ -47,6 +52,13 @@ impl Provider {
             ProviderDefinition::Bedrock { model_id } => {
                 Arc::new(BedrockProvider::new(model_id).await?)
             }
+
+            #[cfg(feature = "http-client")]
+            ProviderDefinition::OpenAI {
+                base_url,
+                api_key,
+                model_id,
+            } => Arc::new(openai::OpenAIProvider::new(base_url, api_key, model_id)?),
         };
 
         Ok(Self { inner })

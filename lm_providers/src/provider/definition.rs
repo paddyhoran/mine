@@ -12,4 +12,10 @@ pub enum ProviderDefinition {
     },
     #[cfg(feature = "aws-bedrock")]
     Bedrock { model_id: String },
+    #[cfg(feature = "http-client")]
+    OpenAI {
+        base_url: String,
+        api_key: String,
+        model_id: String,
+    },
 }

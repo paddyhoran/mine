@@ -1,6 +1,16 @@
-use lm_providers::*;
+#[cfg(not(feature = "aws-bedrock"))]
+fn main() {
+    eprintln!("This example requires the 'aws-bedrock' feature.");
+    eprintln!("Run with: cargo run --example bedrock_example --features aws-bedrock");
+    std::process::exit(1);
+}
+
+#[cfg(feature = "aws-bedrock")]
+use mine_lm_providers::*;
+#[cfg(feature = "aws-bedrock")]
 use std::time::SystemTime;
 
+#[cfg(feature = "aws-bedrock")]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== AWS Bedrock Provider Example ===\n");

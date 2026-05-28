@@ -9,7 +9,7 @@ fmt:
 
 clippy:
     @echo "==> Linting with Clippy..."
-    @cargo clippy --all-targets --fix -- -D warnings # Fix what can be fixed...
+    @cargo clippy --all-targets --fix --allow-dirty -- -D warnings # Fix what can be fixed...
     @cargo clippy --all-targets -- -D warnings
 
 clear:
@@ -27,3 +27,6 @@ ex-bedrock:
 
 ex-opencode:
     cargo run --example opencode_go_example --features http-client --release
+
+agent PROMPT:
+    cargo run -p agent -- "{{PROMPT}}"

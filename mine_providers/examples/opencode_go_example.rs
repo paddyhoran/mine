@@ -1,6 +1,16 @@
-use lm_providers::*;
+#[cfg(not(feature = "http-client"))]
+fn main() {
+    eprintln!("This example requires the 'http-client' feature.");
+    eprintln!("Run with: cargo run --example opencode_go_example --features http-client");
+    std::process::exit(1);
+}
+
+#[cfg(feature = "http-client")]
+use mine_lm_providers::*;
+#[cfg(feature = "http-client")]
 use std::time::SystemTime;
 
+#[cfg(feature = "http-client")]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== OpenCode Go Provider Example ===\n");

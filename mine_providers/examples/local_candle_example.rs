@@ -1,6 +1,16 @@
-use lm_providers::*;
+#[cfg(not(feature = "local-candle"))]
+fn main() {
+    eprintln!("This example requires the 'local-candle' feature.");
+    eprintln!("Run with: cargo run --example local_candle_example --features local-candle");
+    std::process::exit(1);
+}
+
+#[cfg(feature = "local-candle")]
+use mine_lm_providers::*;
+#[cfg(feature = "local-candle")]
 use std::time::SystemTime;
 
+#[cfg(feature = "local-candle")]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Local Candle Provider Example ===\n");

@@ -44,6 +44,7 @@ mod tests {
     use serde::{Deserialize, Serialize};
 
     #[derive(Debug, Serialize, Deserialize, JsonSchema)]
+    #[allow(dead_code)]
     struct TestParams {
         name: String,
         age: u32,

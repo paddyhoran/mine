@@ -1,9 +1,9 @@
 use crate::types::{now, Content, Context, Message, StopReason};
-use mine_lm_providers::stream::Context as LmContext;
-use mine_lm_providers::types::{
+use mine_providers::stream::Context as LmContext;
+use mine_providers::types::{
     AssistantContent, Message as LmMessage, ToolCall, UserContent, UserMessage,
 };
-use mine_lm_providers::{Model, Provider, StreamOptions};
+use mine_providers::{Model, Provider, StreamOptions};
 
 pub async fn agent_loop(
     prompt: String,
@@ -29,11 +29,11 @@ pub async fn agent_loop(
             .map_err(|e| format!("Provider error: {}", e))?;
 
         let stop_reason = match assistant_response.stop_reason {
-            mine_lm_providers::StopReason::Stop => StopReason::Stop,
-            mine_lm_providers::StopReason::Length => StopReason::Stop,
-            mine_lm_providers::StopReason::ToolUse => StopReason::ToolUse,
-            mine_lm_providers::StopReason::Error => StopReason::Error,
-            mine_lm_providers::StopReason::Aborted => StopReason::Aborted,
+            mine_providers::StopReason::Stop => StopReason::Stop,
+            mine_providers::StopReason::Length => StopReason::Stop,
+            mine_providers::StopReason::ToolUse => StopReason::ToolUse,
+            mine_providers::StopReason::Error => StopReason::Error,
+            mine_providers::StopReason::Aborted => StopReason::Aborted,
         };
 
         let mut content = Vec::new();
@@ -141,7 +141,7 @@ fn build_lm_context(context: &Context) -> Result<LmContext, String> {
                 }
 
                 lm_messages.push(LmMessage::Assistant(
-                    mine_lm_providers::types::AssistantMessage {
+                    mine_providers::types::AssistantMessage {
                         content: lm_content,
                         api: "openai".to_string(),
                         provider: "openai-compatible".to_string(),
@@ -149,10 +149,10 @@ fn build_lm_context(context: &Context) -> Result<LmContext, String> {
                         response_id: None,
                         usage: Default::default(),
                         stop_reason: match stop_reason {
-                            StopReason::Stop => mine_lm_providers::StopReason::Stop,
-                            StopReason::ToolUse => mine_lm_providers::StopReason::ToolUse,
-                            StopReason::Error => mine_lm_providers::StopReason::Error,
-                            StopReason::Aborted => mine_lm_providers::StopReason::Aborted,
+                            StopReason::Stop => mine_providers::StopReason::Stop,
+                            StopReason::ToolUse => mine_providers::StopReason::ToolUse,
+                            StopReason::Error => mine_providers::StopReason::Error,
+                            StopReason::Aborted => mine_providers::StopReason::Aborted,
                         },
                         error_message: None,
                         timestamp: std::time::UNIX_EPOCH
@@ -171,14 +171,13 @@ fn build_lm_context(context: &Context) -> Result<LmContext, String> {
 
                 for c in content {
                     if let Content::Text { text } = c {
-                        lm_content.push(mine_lm_providers::types::ContentBlock::Text {
-                            text: text.clone(),
-                        });
+                        lm_content
+                            .push(mine_providers::types::ContentBlock::Text { text: text.clone() });
                     }
                 }
 
                 lm_messages.push(LmMessage::ToolResult(
-                    mine_lm_providers::types::ToolResultMessage {
+                    mine_providers::types::ToolResultMessage {
                         tool_call_id: tool_call_id.clone(),
                         tool_name: tool_name.clone(),
                         content: lm_content,
@@ -199,7 +198,7 @@ fn build_lm_context(context: &Context) -> Result<LmContext, String> {
     let lm_tools: Vec<_> = context
         .tools
         .iter()
-        .map(|tool| mine_lm_providers::types::Tool {
+        .map(|tool| mine_providers::types::Tool {
             name: tool.name.clone(),
             description: tool.description.clone(),
             parameters: tool.parameters.clone(),

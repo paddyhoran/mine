@@ -7,7 +7,7 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
-mine_lm_providers = { path = "../mine_providers", features = ["http-client"] }
+mine_providers = { path = "../mine_providers", features = ["http-client"] }
 serde.workspace = true
 serde_json.workspace = true
 tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros"] }

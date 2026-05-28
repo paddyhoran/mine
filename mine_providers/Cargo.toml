@@ -1,5 +1,5 @@
 [package]
-name = "mine_lm_providers"
+name = "mine_providers"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true

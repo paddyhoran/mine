@@ -3,7 +3,7 @@ mod tools;
 mod types;
 
 use clap::Parser;
-use mine_lm_providers::{Model, Provider, ProviderDefinition};
+use mine_providers::{Model, Provider, ProviderDefinition};
 use types::{Content, Context, Message};
 
 #[derive(Parser, Debug)]

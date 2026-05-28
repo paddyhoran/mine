@@ -6,7 +6,7 @@ fn main() {
 }
 
 #[cfg(feature = "http-client")]
-use mine_lm_providers::*;
+use mine_providers::*;
 #[cfg(feature = "http-client")]
 use std::time::SystemTime;
 

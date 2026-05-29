@@ -1,19 +1,23 @@
-use crate::types::{Message, Tool};
+use crate::types::{TransportMessage, Tool};
 
-/// The context of the model.
+/// Transport layer context for communicating with LLM providers.
+///
+/// This is a serializable, provider-agnostic representation used to send requests
+/// to LLM APIs. It contains only data (no executable functions) and is designed
+/// for the wire format. For agent execution with callable tools, see `ExecutionContext`.
 #[derive(Debug, Clone)]
-pub struct Context {
+pub struct TransportContext {
     /// The system prompt for the model.
     pub system_prompt: Option<String>,
 
     /// Each of the messages.
-    pub messages: Vec<Message>,
+    pub messages: Vec<TransportMessage>,
 
     /// The tools available to the model that it can delegate tasks to.
     pub tools: Vec<Tool>,
 }
 
-impl Context {
+impl TransportContext {
     /// Creates a new empty context.
     pub fn new() -> Self {
         Self {
@@ -34,7 +38,7 @@ impl Context {
     /// Updates the current messages.
     ///
     /// This method replaces the existing messages.
-    pub fn with_messages(mut self, messages: Vec<Message>) -> Self {
+    pub fn with_messages(mut self, messages: Vec<TransportMessage>) -> Self {
         self.messages = messages;
         self
     }
@@ -48,7 +52,7 @@ impl Context {
     }
 
     /// Adds a new message the to existing messages in the context.
-    pub fn add_message(&mut self, message: Message) {
+    pub fn add_message(&mut self, message: TransportMessage) {
         self.messages.push(message);
     }
 
@@ -58,7 +62,7 @@ impl Context {
     }
 }
 
-impl Default for Context {
+impl Default for TransportContext {
     fn default() -> Self {
         Self::new()
     }

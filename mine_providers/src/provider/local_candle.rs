@@ -8,11 +8,11 @@ use candle_transformers::models::quantized_llama::ModelWeights;
 use hf_hub::{api::sync::Api, Repo, RepoType};
 use tokenizers::Tokenizer;
 
-use super::InputSemantics;
 use crate::error::ProviderError;
 use crate::provider::ProviderTrait;
-use crate::stream::{Context, EventStream, StreamOptions};
+use crate::stream::{TransportContext, EventStream, StreamOptions};
 use crate::types::{AssistantContent, AssistantMessage, Model, StopReason, Usage};
+use crate::InputSemantics;
 
 pub struct LocalCandleProvider {
     model_weights: Arc<Mutex<ModelWeights>>,
@@ -132,7 +132,7 @@ impl ProviderTrait for LocalCandleProvider {
     async fn stream(
         &self,
         model: &Model,
-        context: &Context,
+        context: &TransportContext,
         _options: StreamOptions,
     ) -> Result<EventStream, ProviderError> {
         // Build the prompt using Llama 3 input semantics

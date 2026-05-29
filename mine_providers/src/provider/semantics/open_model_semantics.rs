@@ -1,7 +1,7 @@
 //! Abstrations over input semantics for difference model families.
 use crate::error::ProviderError;
-use crate::stream::Context;
-use crate::types::{AssistantContent, Message, UserContent};
+use crate::stream::TransportContext;
+use crate::types::{AssistantContent, TransportMessage, UserContent};
 
 /// Represents different chat template formats used by language models.
 ///
@@ -142,7 +142,7 @@ impl InputSemantics {
     ///
     /// Returns an error if:
     /// - A user message contains unsupported content blocks
-    pub fn build_prompt(&self, context: &Context) -> Result<String, ProviderError> {
+    pub fn build_prompt(&self, context: &TransportContext) -> Result<String, ProviderError> {
         let mut prompt = String::from(self.begin_of_text());
 
         // Add system prompt if present
@@ -153,7 +153,7 @@ impl InputSemantics {
         // Add messages
         for msg in &context.messages {
             match msg {
-                Message::User(user_msg) => {
+                TransportMessage::User(user_msg) => {
                     let content = match &user_msg.content {
                         UserContent::Text(text) => text.clone(),
                         UserContent::Blocks(_) => {
@@ -164,7 +164,7 @@ impl InputSemantics {
                     };
                     prompt.push_str(&self.format_user(&content));
                 }
-                Message::Assistant(assistant_msg) => {
+                TransportMessage::Assistant(assistant_msg) => {
                     let text = assistant_msg
                         .content
                         .iter()
@@ -176,7 +176,7 @@ impl InputSemantics {
                         .join("");
                     prompt.push_str(&self.format_assistant(&text));
                 }
-                Message::ToolResult(_) => {
+                TransportMessage::ToolResult(_) => {
                     // Tool results are not yet supported in local providers
                     // Skip for now
                 }
@@ -199,9 +199,9 @@ mod tests {
     #[test]
     fn test_llama3_basic_prompt() {
         let semantics = InputSemantics::Llama3;
-        let mut context = Context::new();
+        let mut context = TransportContext::new();
         context.system_prompt = Some("You are a helpful assistant.".to_string());
-        context.messages = vec![Message::User(UserMessage {
+        context.messages = vec![TransportMessage::User(UserMessage {
             content: UserContent::Text("Hello!".to_string()),
             timestamp: SystemTime::now(),
         })];
@@ -251,13 +251,13 @@ mod tests {
     #[test]
     fn test_multi_turn_conversation() {
         let semantics = InputSemantics::Llama3;
-        let mut context = Context::new();
+        let mut context = TransportContext::new();
         context.messages = vec![
-            Message::User(UserMessage {
+            TransportMessage::User(UserMessage {
                 content: UserContent::Text("First".to_string()),
                 timestamp: SystemTime::now(),
             }),
-            Message::Assistant(AssistantMessage {
+            TransportMessage::Assistant(AssistantMessage {
                 content: vec![AssistantContent::Text {
                     text: "Response".to_string(),
                     text_signature: None,
@@ -271,7 +271,7 @@ mod tests {
                 error_message: None,
                 timestamp: SystemTime::now(),
             }),
-            Message::User(UserMessage {
+            TransportMessage::User(UserMessage {
                 content: UserContent::Text("Second".to_string()),
                 timestamp: SystemTime::now(),
             }),

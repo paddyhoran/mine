@@ -40,9 +40,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let provider = Provider::new(model.provider.clone()).await?;
     println!("Connected successfully!\n");
 
-    let context = Context::new()
+    let context = TransportContext::new()
         .with_system_prompt("You are a helpful coding assistant.")
-        .with_messages(vec![Message::User(UserMessage {
+        .with_messages(vec![TransportMessage::User(UserMessage {
             content: UserContent::Text("Write a simple hello world function in Rust.".to_string()),
             timestamp: SystemTime::now(),
         })]);

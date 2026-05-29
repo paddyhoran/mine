@@ -6,7 +6,7 @@ use reqwest::Client;
 
 use crate::error::ProviderError;
 use crate::provider::ProviderTrait;
-use crate::stream::{Context, EventStream, StreamOptions};
+use crate::stream::{TransportContext, EventStream, StreamOptions};
 use crate::types::{AssistantContent, AssistantMessage, Model, StopReason, Usage};
 use crate::OpenAIRequestBuilder;
 
@@ -33,12 +33,12 @@ impl OpenAIProvider {
         })
     }
 
-    fn build_request_body(&self, context: &Context) -> Result<serde_json::Value, ProviderError> {
+    fn build_request_body(&self, context: &TransportContext) -> Result<serde_json::Value, ProviderError> {
         let mut builder = OpenAIRequestBuilder::default().add_system_prompt(&context.system_prompt);
 
         for msg in &context.messages {
             match msg {
-                crate::types::Message::User(user_msg) => {
+                crate::types::TransportMessage::User(user_msg) => {
                     let content = match &user_msg.content {
                         crate::types::UserContent::Text(text) => text.clone(),
                         crate::types::UserContent::Blocks(_) => {
@@ -49,7 +49,7 @@ impl OpenAIProvider {
                     };
                     builder = builder.add_user_message(content);
                 }
-                crate::types::Message::Assistant(assistant_msg) => {
+                crate::types::TransportMessage::Assistant(assistant_msg) => {
                     let text = assistant_msg
                         .content
                         .iter()
@@ -82,7 +82,7 @@ impl ProviderTrait for OpenAIProvider {
     async fn stream(
         &self,
         model: &Model,
-        context: &Context,
+        context: &TransportContext,
         _options: StreamOptions,
     ) -> Result<EventStream, ProviderError> {
         let body = self.build_request_body(context)?;

@@ -3,4 +3,7 @@ pub mod tools;
 pub mod types;
 
 pub use r#loop::agent_loop;
-pub use types::{Content, Context, Message, StopReason, Tool, ToolResult};
+pub use types::{Content, ExecutionContext, ExecutionMessage, Tool, ToolResult};
+
+// Re-export StopReason from provider crate (shared type)
+pub use mine_providers::StopReason;

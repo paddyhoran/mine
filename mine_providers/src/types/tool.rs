@@ -1,6 +1,10 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+/// Tool schema definition for LLM provider communication.
+///
+/// Describes a tool's interface (name, description, parameters) without executable code.
+/// This is serialized and sent to LLM APIs. For executable tools, see `mine_agent::Tool`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Tool {
     pub name: String,

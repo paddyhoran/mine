@@ -29,4 +29,4 @@ ex-opencode:
     cargo run --example opencode_go_example --features http-client --release
 
 agent PROMPT:
-    cargo run -p agent -- "{{PROMPT}}"
+    cargo run -p mine_agent -- "{{PROMPT}}"

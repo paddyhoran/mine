@@ -4,7 +4,7 @@ mod types;
 
 use clap::Parser;
 use mine_providers::{Model, Provider, ProviderDefinition};
-use types::{Content, Context, Message};
+use types::{Content, ExecutionContext, ExecutionMessage};
 
 #[derive(Parser, Debug)]
 #[command(name = "mine_agent")]
@@ -66,7 +66,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let provider = Provider::new(model.provider.clone()).await?;
 
-    let mut context = Context::new(args.system)
+    let mut context = ExecutionContext::new(args.system)
         .with_tool(tools::create_calculator_tool())
         .with_tool(tools::create_echo_tool());
 
@@ -85,12 +85,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn print_message(msg: &Message) {
+fn print_message(msg: &ExecutionMessage) {
     match msg {
-        Message::User { content, .. } => {
+        ExecutionMessage::User { content, .. } => {
             println!("User: {}", content);
         }
-        Message::Assistant {
+        ExecutionMessage::Assistant {
             content,
             stop_reason,
             ..
@@ -116,7 +116,7 @@ fn print_message(msg: &Message) {
             }
             println!("  (Stop reason: {:?})", stop_reason);
         }
-        Message::ToolResult {
+        ExecutionMessage::ToolResult {
             tool_name,
             content,
             is_error,

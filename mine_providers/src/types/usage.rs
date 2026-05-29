@@ -24,12 +24,21 @@ pub struct Cost {
     pub total: f64,
 }
 
+/// Reason why the LLM stopped generating.
+///
+/// Shared type used by both transport and execution layers to indicate
+/// why generation completed (natural stop, length limit, tool use, error, etc.).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum StopReason {
+    /// Natural completion - model finished its response
     Stop,
+    /// Hit maximum token length limit
     Length,
+    /// Model requested tool execution
     ToolUse,
+    /// Error occurred during generation
     Error,
+    /// Generation was aborted/cancelled
     Aborted,
 }

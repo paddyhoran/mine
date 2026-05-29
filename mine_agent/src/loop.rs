@@ -1,19 +1,19 @@
-use crate::types::{now, Content, Context, Message, StopReason};
-use mine_providers::stream::Context as LmContext;
+use crate::types::{now, Content, ExecutionContext, ExecutionMessage};
+use mine_providers::stream::TransportContext;
 use mine_providers::types::{
-    AssistantContent, Message as LmMessage, ToolCall, UserContent, UserMessage,
+    AssistantContent, TransportMessage, ToolCall, UserContent, UserMessage,
 };
-use mine_providers::{Model, Provider, StreamOptions};
+use mine_providers::{Model, Provider, StopReason, StreamOptions};
 
 pub async fn agent_loop(
     prompt: String,
-    context: &mut Context,
+    context: &mut ExecutionContext,
     provider: &Provider,
     model: &Model,
-) -> Result<Vec<Message>, String> {
+) -> Result<Vec<ExecutionMessage>, String> {
     let mut new_messages = vec![];
 
-    let user_msg = Message::User {
+    let user_msg = ExecutionMessage::User {
         content: prompt,
         timestamp: now(),
     };
@@ -21,20 +21,12 @@ pub async fn agent_loop(
     new_messages.push(user_msg);
 
     loop {
-        let lm_context = build_lm_context(context)?;
+        let lm_context = build_provider_context(context)?;
 
         let assistant_response = provider
             .complete(model, &lm_context, StreamOptions::default())
             .await
             .map_err(|e| format!("Provider error: {}", e))?;
-
-        let stop_reason = match assistant_response.stop_reason {
-            mine_providers::StopReason::Stop => StopReason::Stop,
-            mine_providers::StopReason::Length => StopReason::Stop,
-            mine_providers::StopReason::ToolUse => StopReason::ToolUse,
-            mine_providers::StopReason::Error => StopReason::Error,
-            mine_providers::StopReason::Aborted => StopReason::Aborted,
-        };
 
         let mut content = Vec::new();
         let mut tool_calls = Vec::new();
@@ -56,16 +48,16 @@ pub async fn agent_loop(
             }
         }
 
-        let assistant_msg = Message::Assistant {
+        let assistant_msg = ExecutionMessage::Assistant {
             content,
-            stop_reason,
+            stop_reason: assistant_response.stop_reason,
             timestamp: now(),
         };
 
         context.messages.push(assistant_msg.clone());
         new_messages.push(assistant_msg.clone());
 
-        if stop_reason == StopReason::Error {
+        if assistant_response.stop_reason == StopReason::Error {
             break;
         }
 
@@ -83,7 +75,7 @@ pub async fn agent_loop(
             let result = (tool.execute)(tool_call.arguments.clone())
                 .map_err(|e| format!("Tool execution error: {}", e))?;
 
-            let tool_result_msg = Message::ToolResult {
+            let tool_result_msg = ExecutionMessage::ToolResult {
                 tool_call_id: tool_call.id.clone(),
                 tool_name: tool_call.name.clone(),
                 content: result.content,
@@ -99,18 +91,23 @@ pub async fn agent_loop(
     Ok(new_messages)
 }
 
-fn build_lm_context(context: &Context) -> Result<LmContext, String> {
+/// Converts execution layer context to transport layer context.
+///
+/// This is the architectural boundary between agent execution (with executable tools)
+/// and provider communication (serializable schemas only). The conversion extracts
+/// tool schemas and transforms messages for LLM API requests.
+fn build_provider_context(context: &ExecutionContext) -> Result<TransportContext, String> {
     let mut lm_messages = Vec::new();
 
     for msg in &context.messages {
         match msg {
-            Message::User { content, timestamp } => {
-                lm_messages.push(LmMessage::User(UserMessage {
+            ExecutionMessage::User { content, timestamp } => {
+                lm_messages.push(TransportMessage::User(UserMessage {
                     content: UserContent::Text(content.clone()),
                     timestamp: std::time::UNIX_EPOCH + std::time::Duration::from_secs(*timestamp),
                 }));
             }
-            Message::Assistant {
+            ExecutionMessage::Assistant {
                 content,
                 stop_reason,
                 timestamp,
@@ -140,7 +137,7 @@ fn build_lm_context(context: &Context) -> Result<LmContext, String> {
                     }
                 }
 
-                lm_messages.push(LmMessage::Assistant(
+                lm_messages.push(TransportMessage::Assistant(
                     mine_providers::types::AssistantMessage {
                         content: lm_content,
                         api: "openai".to_string(),
@@ -148,19 +145,14 @@ fn build_lm_context(context: &Context) -> Result<LmContext, String> {
                         model: "".to_string(),
                         response_id: None,
                         usage: Default::default(),
-                        stop_reason: match stop_reason {
-                            StopReason::Stop => mine_providers::StopReason::Stop,
-                            StopReason::ToolUse => mine_providers::StopReason::ToolUse,
-                            StopReason::Error => mine_providers::StopReason::Error,
-                            StopReason::Aborted => mine_providers::StopReason::Aborted,
-                        },
+                        stop_reason: *stop_reason,
                         error_message: None,
                         timestamp: std::time::UNIX_EPOCH
                             + std::time::Duration::from_secs(*timestamp),
                     },
                 ));
             }
-            Message::ToolResult {
+            ExecutionMessage::ToolResult {
                 tool_call_id,
                 tool_name,
                 content,
@@ -176,7 +168,7 @@ fn build_lm_context(context: &Context) -> Result<LmContext, String> {
                     }
                 }
 
-                lm_messages.push(LmMessage::ToolResult(
+                lm_messages.push(TransportMessage::ToolResult(
                     mine_providers::types::ToolResultMessage {
                         tool_call_id: tool_call_id.clone(),
                         tool_name: tool_name.clone(),
@@ -191,7 +183,7 @@ fn build_lm_context(context: &Context) -> Result<LmContext, String> {
         }
     }
 
-    let mut lm_context = LmContext::new()
+    let mut lm_context = TransportContext::new()
         .with_system_prompt(&context.system_prompt)
         .with_messages(lm_messages);
 

@@ -3,9 +3,13 @@ use std::time::SystemTime;
 
 use super::{AssistantContent, ContentBlock, StopReason, Usage};
 
+/// Transport layer message for LLM provider communication.
+///
+/// Contains rich metadata (provider, model, usage, timestamps) needed for observability
+/// and serialization to/from LLM APIs. For simpler agent execution messages, see `ExecutionMessage`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "role", rename_all = "camelCase")]
-pub enum Message {
+pub enum TransportMessage {
     User(UserMessage),
     Assistant(AssistantMessage),
     ToolResult(ToolResultMessage),

@@ -13,7 +13,7 @@ pub mod openai;
 pub mod semantics;
 
 use crate::error::ProviderError;
-use crate::stream::{Context, EventStream, SimpleStreamOptions, StreamOptions};
+use crate::stream::{TransportContext, EventStream, SimpleStreamOptions, StreamOptions};
 use crate::types::{AssistantMessage, Model};
 pub use definition::ProviderDefinition;
 pub use registry::{global_registry, ProviderRegistry};
@@ -77,7 +77,7 @@ impl Provider {
     pub async fn stream(
         &self,
         model: &Model,
-        context: &Context,
+        context: &TransportContext,
         options: StreamOptions,
     ) -> Result<EventStream, ProviderError> {
         self.inner.stream(model, context, options).await
@@ -86,7 +86,7 @@ impl Provider {
     pub async fn stream_simple(
         &self,
         model: &Model,
-        context: &Context,
+        context: &TransportContext,
         options: SimpleStreamOptions,
     ) -> Result<EventStream, ProviderError> {
         self.inner.stream_simple(model, context, options).await
@@ -95,7 +95,7 @@ impl Provider {
     pub async fn complete(
         &self,
         model: &Model,
-        context: &Context,
+        context: &TransportContext,
         options: StreamOptions,
     ) -> Result<AssistantMessage, ProviderError> {
         self.inner.complete(model, context, options).await
@@ -104,7 +104,7 @@ impl Provider {
     pub async fn complete_simple(
         &self,
         model: &Model,
-        context: &Context,
+        context: &TransportContext,
         options: SimpleStreamOptions,
     ) -> Result<AssistantMessage, ProviderError> {
         self.inner.complete_simple(model, context, options).await

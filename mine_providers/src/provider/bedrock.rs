@@ -8,7 +8,7 @@ use serde_json::json;
 
 use crate::error::ProviderError;
 use crate::provider::ProviderTrait;
-use crate::stream::{Context, EventStream, StreamOptions};
+use crate::stream::{TransportContext, EventStream, StreamOptions};
 use crate::types::{AssistantContent, AssistantMessage, Model, StopReason, Usage};
 
 pub struct BedrockProvider {
@@ -27,12 +27,12 @@ impl BedrockProvider {
         })
     }
 
-    fn build_request_body(&self, context: &Context) -> Result<String, ProviderError> {
+    fn build_request_body(&self, context: &TransportContext) -> Result<String, ProviderError> {
         let mut messages = Vec::new();
 
         for msg in &context.messages {
             match msg {
-                crate::types::Message::User(user_msg) => {
+                crate::types::TransportMessage::User(user_msg) => {
                     let content = match &user_msg.content {
                         crate::types::UserContent::Text(text) => text.clone(),
                         crate::types::UserContent::Blocks(_) => {
@@ -46,7 +46,7 @@ impl BedrockProvider {
                         "content": content
                     }));
                 }
-                crate::types::Message::Assistant(assistant_msg) => {
+                crate::types::TransportMessage::Assistant(assistant_msg) => {
                     let text = assistant_msg
                         .content
                         .iter()
@@ -93,7 +93,7 @@ impl ProviderTrait for BedrockProvider {
     async fn stream(
         &self,
         model: &Model,
-        context: &Context,
+        context: &TransportContext,
         _options: StreamOptions,
     ) -> Result<EventStream, ProviderError> {
         let body = self.build_request_body(context)?;

@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use futures::StreamExt;
 
 use crate::error::ProviderError;
-use crate::stream::{Context, EventStream, SimpleStreamOptions, StreamEvent, StreamOptions};
+use crate::stream::{TransportContext, EventStream, SimpleStreamOptions, StreamEvent, StreamOptions};
 use crate::types::{AssistantMessage, Model};
 
 #[async_trait]
@@ -14,14 +14,14 @@ pub trait ProviderTrait: Send + Sync {
     async fn stream(
         &self,
         model: &Model,
-        context: &Context,
+        context: &TransportContext,
         options: StreamOptions,
     ) -> Result<EventStream, ProviderError>;
 
     async fn stream_simple(
         &self,
         model: &Model,
-        context: &Context,
+        context: &TransportContext,
         options: SimpleStreamOptions,
     ) -> Result<EventStream, ProviderError> {
         self.stream(model, context, options.base).await
@@ -30,7 +30,7 @@ pub trait ProviderTrait: Send + Sync {
     async fn complete(
         &self,
         model: &Model,
-        context: &Context,
+        context: &TransportContext,
         options: StreamOptions,
     ) -> Result<AssistantMessage, ProviderError> {
         dbg!("In complete");
@@ -56,7 +56,7 @@ pub trait ProviderTrait: Send + Sync {
     async fn complete_simple(
         &self,
         model: &Model,
-        context: &Context,
+        context: &TransportContext,
         options: SimpleStreamOptions,
     ) -> Result<AssistantMessage, ProviderError> {
         self.complete(model, context, options.base).await

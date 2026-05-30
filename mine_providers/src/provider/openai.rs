@@ -6,7 +6,7 @@ use reqwest::Client;
 
 use crate::error::ProviderError;
 use crate::provider::ProviderTrait;
-use crate::stream::{TransportContext, EventStream, StreamOptions};
+use crate::stream::{EventStream, StreamOptions, TransportContext};
 use crate::types::{AssistantContent, AssistantMessage, Model, StopReason, Usage};
 use crate::OpenAIRequestBuilder;
 
@@ -33,7 +33,10 @@ impl OpenAIProvider {
         })
     }
 
-    fn build_request_body(&self, context: &TransportContext) -> Result<serde_json::Value, ProviderError> {
+    fn build_request_body(
+        &self,
+        context: &TransportContext,
+    ) -> Result<serde_json::Value, ProviderError> {
         let mut builder = OpenAIRequestBuilder::default().add_system_prompt(&context.system_prompt);
 
         for msg in &context.messages {

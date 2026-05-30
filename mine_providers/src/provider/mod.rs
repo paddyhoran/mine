@@ -13,7 +13,7 @@ pub mod openai;
 pub mod semantics;
 
 use crate::error::ProviderError;
-use crate::stream::{TransportContext, EventStream, SimpleStreamOptions, StreamOptions};
+use crate::stream::{EventStream, SimpleStreamOptions, StreamOptions, TransportContext};
 use crate::types::{AssistantMessage, Model};
 pub use definition::ProviderDefinition;
 pub use registry::{global_registry, ProviderRegistry};

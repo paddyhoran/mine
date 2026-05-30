@@ -1,4 +1,4 @@
-use crate::types::{TransportMessage, Tool};
+use crate::types::{Tool, TransportMessage};
 
 /// Transport layer context for communicating with LLM providers.
 ///

@@ -2,7 +2,9 @@ use async_trait::async_trait;
 use futures::StreamExt;
 
 use crate::error::ProviderError;
-use crate::stream::{TransportContext, EventStream, SimpleStreamOptions, StreamEvent, StreamOptions};
+use crate::stream::{
+    EventStream, SimpleStreamOptions, StreamEvent, StreamOptions, TransportContext,
+};
 use crate::types::{AssistantMessage, Model};
 
 #[async_trait]
@@ -33,7 +35,6 @@ pub trait ProviderTrait: Send + Sync {
         context: &TransportContext,
         options: StreamOptions,
     ) -> Result<AssistantMessage, ProviderError> {
-        dbg!("In complete");
         let mut stream = self.stream(model, context, options).await?;
         let mut final_message = None;
 

@@ -1,7 +1,7 @@
 use crate::types::{now, Content, ExecutionContext, ExecutionMessage};
 use mine_providers::stream::TransportContext;
 use mine_providers::types::{
-    AssistantContent, TransportMessage, ToolCall, UserContent, UserMessage,
+    AssistantContent, ToolCall, TransportMessage, UserContent, UserMessage,
 };
 use mine_providers::{Model, Provider, StopReason, StreamOptions};
 

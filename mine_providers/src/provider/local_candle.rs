@@ -10,7 +10,7 @@ use tokenizers::Tokenizer;
 
 use crate::error::ProviderError;
 use crate::provider::ProviderTrait;
-use crate::stream::{TransportContext, EventStream, StreamOptions};
+use crate::stream::{EventStream, StreamOptions, TransportContext};
 use crate::types::{AssistantContent, AssistantMessage, Model, StopReason, Usage};
 use crate::InputSemantics;
 

@@ -8,7 +8,7 @@ use serde_json::json;
 
 use crate::error::ProviderError;
 use crate::provider::ProviderTrait;
-use crate::stream::{TransportContext, EventStream, StreamOptions};
+use crate::stream::{EventStream, StreamOptions, TransportContext};
 use crate::types::{AssistantContent, AssistantMessage, Model, StopReason, Usage};
 
 pub struct BedrockProvider {

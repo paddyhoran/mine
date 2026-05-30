@@ -13,14 +13,18 @@ struct Args {
     #[arg(help = "The user prompt to send to the mine_agent")]
     prompt: String,
 
-    #[arg(short, long, help = "OpenAI API key (or set OPENAI_API_KEY env var)")]
+    #[arg(
+        short,
+        long,
+        help = "OpenCode API key (or set OPENCODE_API_KEY env var)"
+    )]
     api_key: Option<String>,
 
     #[arg(
         short,
         long,
         default_value = "https://opencode.ai/zen/go/v1",
-        help = "OpenAI API base URL (or set OPENAI_BASE_URL env var)"
+        help = "OpenCode API base URL (or set OPENCODE_BASE_URL env var)"
     )]
     base_url: String,
 
@@ -28,7 +32,7 @@ struct Args {
         short,
         long,
         default_value = "deepseek-v4-pro",
-        help = "Model ID to use (or set OPENAI_MODEL env var)"
+        help = "Model ID to use (or set OPENCODE_MODEL env var)"
     )]
     model: String,
 
@@ -47,8 +51,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let api_key = args
         .api_key
-        .or_else(|| std::env::var("OPENAI_API_KEY").ok())
-        .ok_or("API key required. Set OPENAI_API_KEY or use --api-key")?;
+        .or_else(|| std::env::var("OPENCODE_API_KEY").ok())
+        .ok_or("API key required. Set OPENCODE_API_KEY or use --api-key")?;
 
     println!("=== Agent Starting ===\n");
     println!("Model: {}", args.model);

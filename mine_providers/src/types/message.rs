@@ -10,13 +10,13 @@ use super::{AssistantContent, ContentBlock, StopReason, Usage};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "role", rename_all = "camelCase")]
 pub enum TransportMessage {
-    User(UserMessage),
-    Assistant(AssistantMessage),
-    ToolResult(ToolResultMessage),
+    User(UserTransportMessage),
+    Assistant(AssistantTransportMessage),
+    ToolResult(ToolResultTransportMessage),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserMessage {
+pub struct UserTransportMessage {
     pub content: UserContent,
     pub timestamp: SystemTime,
 }
@@ -29,7 +29,7 @@ pub enum UserContent {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AssistantMessage {
+pub struct AssistantTransportMessage {
     pub content: Vec<AssistantContent>,
     pub api: String,
     pub provider: String,
@@ -45,7 +45,7 @@ pub struct AssistantMessage {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ToolResultMessage {
+pub struct ToolResultTransportMessage {
     #[serde(rename = "toolCallId")]
     pub tool_call_id: String,
     #[serde(rename = "toolName")]

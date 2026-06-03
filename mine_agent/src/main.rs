@@ -8,7 +8,7 @@ use types::{Content, ExecutionContext, ExecutionMessage};
 
 #[derive(Parser, Debug)]
 #[command(name = "mine_agent")]
-#[command(about = "A simple LLM mine_agent with tool execution", long_about = None)]
+#[command(about = "A simple LLM agent with tool execution", long_about = None)]
 struct Args {
     #[arg(help = "The user prompt to send to the mine_agent")]
     prompt: String,

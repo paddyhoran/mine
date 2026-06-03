@@ -1,11 +1,9 @@
 use async_trait::async_trait;
-use futures::StreamExt;
 
+use crate::completion::CompletionOptions;
+use crate::context::TransportContext;
 use crate::error::ProviderError;
-use crate::stream::{
-    EventStream, SimpleStreamOptions, StreamEvent, StreamOptions, TransportContext,
-};
-use crate::types::{AssistantMessage, Model};
+use crate::types::{AssistantTransportMessage, Model};
 
 #[async_trait]
 pub trait ProviderTrait: Send + Sync {
@@ -13,55 +11,15 @@ pub trait ProviderTrait: Send + Sync {
 
     fn api_id(&self) -> &str;
 
-    async fn stream(
+    /// Complete a request and return the full response.
+    ///
+    /// Makes a single request to the LLM and returns the complete response.
+    async fn complete_direct(
         &self,
         model: &Model,
         context: &TransportContext,
-        options: StreamOptions,
-    ) -> Result<EventStream, ProviderError>;
-
-    async fn stream_simple(
-        &self,
-        model: &Model,
-        context: &TransportContext,
-        options: SimpleStreamOptions,
-    ) -> Result<EventStream, ProviderError> {
-        self.stream(model, context, options.base).await
-    }
-
-    async fn complete(
-        &self,
-        model: &Model,
-        context: &TransportContext,
-        options: StreamOptions,
-    ) -> Result<AssistantMessage, ProviderError> {
-        let mut stream = self.stream(model, context, options).await?;
-        let mut final_message = None;
-
-        while let Some(event) = stream.next().await {
-            match event? {
-                StreamEvent::Done { message, .. } => {
-                    final_message = Some(message);
-                    break;
-                }
-                StreamEvent::Error { error, .. } => {
-                    return Ok(error);
-                }
-                _ => {}
-            }
-        }
-
-        final_message.ok_or(ProviderError::StreamEnded)
-    }
-
-    async fn complete_simple(
-        &self,
-        model: &Model,
-        context: &TransportContext,
-        options: SimpleStreamOptions,
-    ) -> Result<AssistantMessage, ProviderError> {
-        self.complete(model, context, options.base).await
-    }
+        options: CompletionOptions,
+    ) -> Result<AssistantTransportMessage, ProviderError>;
 
     /// Indicates whether this provider supports `feature`.
     fn supports_feature(&self, _feature: ProviderFeature) -> bool {
@@ -75,10 +33,8 @@ pub trait ProviderTrait: Send + Sync {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ProviderFeature {
-    Streaming,
     ToolCalling,
     Vision,
     Reasoning,
     PromptCaching,
-    WebsocketTransport,
 }

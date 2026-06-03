@@ -1,5 +1,4 @@
 use async_trait::async_trait;
-use futures::stream;
 use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
 
@@ -8,10 +7,10 @@ use candle_transformers::models::quantized_llama::ModelWeights;
 use hf_hub::{api::sync::Api, Repo, RepoType};
 use tokenizers::Tokenizer;
 
+use crate::context::TransportContext;
 use crate::error::ProviderError;
 use crate::provider::ProviderTrait;
-use crate::stream::{EventStream, StreamOptions, TransportContext};
-use crate::types::{AssistantContent, AssistantMessage, Model, StopReason, Usage};
+use crate::types::{AssistantContent, AssistantTransportMessage, Model, StopReason, Usage};
 use crate::InputSemantics;
 
 pub struct LocalCandleProvider {
@@ -129,18 +128,18 @@ impl ProviderTrait for LocalCandleProvider {
         "local-candle"
     }
 
-    async fn stream(
+    async fn complete_direct(
         &self,
         model: &Model,
         context: &TransportContext,
-        _options: StreamOptions,
-    ) -> Result<EventStream, ProviderError> {
+        _options: crate::completion::CompletionOptions,
+    ) -> Result<AssistantTransportMessage, ProviderError> {
         // Build the prompt using Llama 3 input semantics
         let full_prompt = InputSemantics::Llama3.build_prompt(context)?;
 
         let generated = self.generate_text(&full_prompt, 512)?;
 
-        let message = AssistantMessage {
+        Ok(AssistantTransportMessage {
             content: vec![AssistantContent::Text {
                 text: generated,
                 text_signature: None,
@@ -153,22 +152,6 @@ impl ProviderTrait for LocalCandleProvider {
             stop_reason: StopReason::Stop,
             error_message: None,
             timestamp: SystemTime::now(),
-        };
-
-        let events = vec![
-            Ok(crate::stream::StreamEvent::Start {
-                partial: message.clone(),
-            }),
-            Ok(crate::stream::StreamEvent::Done {
-                reason: StopReason::Stop,
-                message,
-            }),
-        ];
-
-        Ok(Box::pin(stream::iter(events)))
-    }
-
-    fn supports_feature(&self, feature: crate::provider::ProviderFeature) -> bool {
-        matches!(feature, crate::provider::ProviderFeature::Streaming)
+        })
     }
 }

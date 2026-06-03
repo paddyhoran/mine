@@ -1,6 +1,6 @@
-//! Abstrations over input semantics for difference model families.
+//! Abstractions over input semantics for difference model families.
+use crate::context::TransportContext;
 use crate::error::ProviderError;
-use crate::stream::TransportContext;
 use crate::types::{AssistantContent, TransportMessage, UserContent};
 
 /// Represents different chat template formats used by language models.
@@ -193,7 +193,7 @@ impl InputSemantics {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::{AssistantMessage, StopReason, Usage, UserMessage};
+    use crate::types::{AssistantTransportMessage, StopReason, Usage, UserTransportMessage};
     use std::time::SystemTime;
 
     #[test]
@@ -201,7 +201,7 @@ mod tests {
         let semantics = InputSemantics::Llama3;
         let mut context = TransportContext::new();
         context.system_prompt = Some("You are a helpful assistant.".to_string());
-        context.messages = vec![TransportMessage::User(UserMessage {
+        context.messages = vec![TransportMessage::User(UserTransportMessage {
             content: UserContent::Text("Hello!".to_string()),
             timestamp: SystemTime::now(),
         })];
@@ -253,11 +253,11 @@ mod tests {
         let semantics = InputSemantics::Llama3;
         let mut context = TransportContext::new();
         context.messages = vec![
-            TransportMessage::User(UserMessage {
+            TransportMessage::User(UserTransportMessage {
                 content: UserContent::Text("First".to_string()),
                 timestamp: SystemTime::now(),
             }),
-            TransportMessage::Assistant(AssistantMessage {
+            TransportMessage::Assistant(AssistantTransportMessage {
                 content: vec![AssistantContent::Text {
                     text: "Response".to_string(),
                     text_signature: None,
@@ -271,7 +271,7 @@ mod tests {
                 error_message: None,
                 timestamp: SystemTime::now(),
             }),
-            TransportMessage::User(UserMessage {
+            TransportMessage::User(UserTransportMessage {
                 content: UserContent::Text("Second".to_string()),
                 timestamp: SystemTime::now(),
             }),

@@ -1,9 +1,8 @@
 use crate::types::{now, Content, ExecutionContext, ExecutionMessage};
-use mine_providers::stream::TransportContext;
 use mine_providers::types::{
-    AssistantContent, ToolCall, TransportMessage, UserContent, UserMessage,
+    AssistantContent, ToolCall, TransportMessage, UserContent, UserTransportMessage,
 };
-use mine_providers::{Model, Provider, StopReason, StreamOptions};
+use mine_providers::{CompletionOptions, Model, Provider, StopReason, TransportContext};
 
 pub async fn agent_loop(
     prompt: String,
@@ -17,14 +16,13 @@ pub async fn agent_loop(
         content: prompt,
         timestamp: now(),
     };
-    context.messages.push(user_msg.clone());
     new_messages.push(user_msg);
 
     loop {
         let lm_context = build_provider_context(context)?;
 
         let assistant_response = provider
-            .complete(model, &lm_context, StreamOptions::default())
+            .complete_direct(model, &lm_context, CompletionOptions::default())
             .await
             .map_err(|e| format!("Provider error: {}", e))?;
 
@@ -44,7 +42,7 @@ pub async fn agent_loop(
                     });
                     tool_calls.push(tc.clone());
                 }
-                _ => {}
+                AssistantContent::Thinking { .. } => {}
             }
         }
 
@@ -54,14 +52,9 @@ pub async fn agent_loop(
             timestamp: now(),
         };
 
-        context.messages.push(assistant_msg.clone());
         new_messages.push(assistant_msg.clone());
 
-        if assistant_response.stop_reason == StopReason::Error {
-            break;
-        }
-
-        if tool_calls.is_empty() {
+        if assistant_response.stop_reason == StopReason::Error || tool_calls.is_empty() {
             break;
         }
 
@@ -83,11 +76,11 @@ pub async fn agent_loop(
                 timestamp: now(),
             };
 
-            context.messages.push(tool_result_msg.clone());
             new_messages.push(tool_result_msg);
         }
     }
 
+    context.update_with_new_messages(&new_messages);
     Ok(new_messages)
 }
 
@@ -99,10 +92,10 @@ pub async fn agent_loop(
 fn build_provider_context(context: &ExecutionContext) -> Result<TransportContext, String> {
     let mut lm_messages = Vec::new();
 
-    for msg in &context.messages {
+    for msg in context.messages() {
         match msg {
             ExecutionMessage::User { content, timestamp } => {
-                lm_messages.push(TransportMessage::User(UserMessage {
+                lm_messages.push(TransportMessage::User(UserTransportMessage {
                     content: UserContent::Text(content.clone()),
                     timestamp: std::time::UNIX_EPOCH + std::time::Duration::from_secs(*timestamp),
                 }));
@@ -138,7 +131,7 @@ fn build_provider_context(context: &ExecutionContext) -> Result<TransportContext
                 }
 
                 lm_messages.push(TransportMessage::Assistant(
-                    mine_providers::types::AssistantMessage {
+                    mine_providers::types::AssistantTransportMessage {
                         content: lm_content,
                         api: "openai".to_string(),
                         provider: "openai-compatible".to_string(),
@@ -169,7 +162,7 @@ fn build_provider_context(context: &ExecutionContext) -> Result<TransportContext
                 }
 
                 lm_messages.push(TransportMessage::ToolResult(
-                    mine_providers::types::ToolResultMessage {
+                    mine_providers::types::ToolResultTransportMessage {
                         tool_call_id: tool_call_id.clone(),
                         tool_name: tool_name.clone(),
                         content: lm_content,

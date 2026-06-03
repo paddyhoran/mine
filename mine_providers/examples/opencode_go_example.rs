@@ -42,7 +42,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let context = TransportContext::new()
         .with_system_prompt("You are a helpful coding assistant.")
-        .with_messages(vec![TransportMessage::User(UserMessage {
+        .with_messages(vec![TransportMessage::User(UserTransportMessage {
             content: UserContent::Text("Write a simple hello world function in Rust.".to_string()),
             timestamp: SystemTime::now(),
         })]);
@@ -50,7 +50,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Generating response...\n");
 
     let response = provider
-        .complete(&model, &context, StreamOptions::default())
+        .complete_direct(&model, &context, CompletionOptions::default())
         .await?;
 
     if let Some(AssistantContent::Text { text, .. }) = response.content.first() {

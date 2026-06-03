@@ -12,9 +12,9 @@ pub mod bedrock;
 pub mod openai;
 pub mod semantics;
 
+use crate::context::TransportContext;
 use crate::error::ProviderError;
-use crate::stream::{EventStream, SimpleStreamOptions, StreamOptions, TransportContext};
-use crate::types::{AssistantMessage, Model};
+use crate::types::{AssistantTransportMessage, Model};
 pub use definition::ProviderDefinition;
 pub use registry::{global_registry, ProviderRegistry};
 use std::sync::Arc;
@@ -26,6 +26,7 @@ pub use local_candle::LocalCandleProvider;
 #[cfg(feature = "aws-bedrock")]
 pub use bedrock::BedrockProvider;
 
+use crate::CompletionOptions;
 #[cfg(feature = "http-client")]
 pub use openai::OpenAIProvider;
 
@@ -58,7 +59,7 @@ impl Provider {
                 base_url,
                 api_key,
                 model_id,
-            } => Arc::new(openai::OpenAIProvider::new(base_url, api_key, model_id)?),
+            } => Arc::new(OpenAIProvider::new(base_url, api_key, model_id)?),
         };
 
         Ok(Self { inner })
@@ -74,40 +75,14 @@ impl Provider {
         self.inner.api_id()
     }
 
-    pub async fn stream(
+    /// Complete a request and return the full response.
+    pub async fn complete_direct(
         &self,
         model: &Model,
         context: &TransportContext,
-        options: StreamOptions,
-    ) -> Result<EventStream, ProviderError> {
-        self.inner.stream(model, context, options).await
-    }
-
-    pub async fn stream_simple(
-        &self,
-        model: &Model,
-        context: &TransportContext,
-        options: SimpleStreamOptions,
-    ) -> Result<EventStream, ProviderError> {
-        self.inner.stream_simple(model, context, options).await
-    }
-
-    pub async fn complete(
-        &self,
-        model: &Model,
-        context: &TransportContext,
-        options: StreamOptions,
-    ) -> Result<AssistantMessage, ProviderError> {
-        self.inner.complete(model, context, options).await
-    }
-
-    pub async fn complete_simple(
-        &self,
-        model: &Model,
-        context: &TransportContext,
-        options: SimpleStreamOptions,
-    ) -> Result<AssistantMessage, ProviderError> {
-        self.inner.complete_simple(model, context, options).await
+        options: CompletionOptions,
+    ) -> Result<AssistantTransportMessage, ProviderError> {
+        self.inner.complete_direct(model, context, options).await
     }
 
     pub fn supports_feature(&self, feature: ProviderFeature) -> bool {

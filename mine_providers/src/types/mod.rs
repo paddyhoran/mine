@@ -6,7 +6,8 @@ mod usage;
 
 pub use content::{AssistantContent, ContentBlock};
 pub use message::{
-    AssistantMessage, ToolResultMessage, TransportMessage, UserContent, UserMessage,
+    AssistantTransportMessage, ToolResultTransportMessage, TransportMessage, UserContent,
+    UserTransportMessage,
 };
 pub use model::Model;
 pub use tool::{Tool, ToolBuilder, ToolCall};

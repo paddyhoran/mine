@@ -1,13 +1,12 @@
 use async_trait::async_trait;
-use futures::stream;
 use std::time::SystemTime;
 
 use reqwest::Client;
 
+use crate::context::TransportContext;
 use crate::error::ProviderError;
 use crate::provider::ProviderTrait;
-use crate::stream::{EventStream, StreamOptions, TransportContext};
-use crate::types::{AssistantContent, AssistantMessage, Model, StopReason, Usage};
+use crate::types::{AssistantContent, AssistantTransportMessage, Model, StopReason, Usage};
 use crate::OpenAIRequestBuilder;
 
 pub struct OpenAIProvider {
@@ -82,12 +81,12 @@ impl ProviderTrait for OpenAIProvider {
         "openai"
     }
 
-    async fn stream(
+    async fn complete_direct(
         &self,
         model: &Model,
         context: &TransportContext,
-        _options: StreamOptions,
-    ) -> Result<EventStream, ProviderError> {
+        _options: crate::completion::CompletionOptions,
+    ) -> Result<AssistantTransportMessage, ProviderError> {
         let body = self.build_request_body(context)?;
 
         let url = format!("{}/chat/completions", self.base_url);
@@ -146,7 +145,7 @@ impl ProviderTrait for OpenAIProvider {
             _ => StopReason::Stop,
         };
 
-        let message = AssistantMessage {
+        Ok(AssistantTransportMessage {
             content: vec![AssistantContent::Text {
                 text,
                 text_signature: None,
@@ -159,22 +158,6 @@ impl ProviderTrait for OpenAIProvider {
             stop_reason,
             error_message: None,
             timestamp: SystemTime::now(),
-        };
-
-        let events = vec![
-            Ok(crate::stream::StreamEvent::Start {
-                partial: message.clone(),
-            }),
-            Ok(crate::stream::StreamEvent::Done {
-                reason: stop_reason,
-                message,
-            }),
-        ];
-
-        Ok(Box::pin(stream::iter(events)))
-    }
-
-    fn supports_feature(&self, feature: crate::provider::ProviderFeature) -> bool {
-        matches!(feature, crate::provider::ProviderFeature::Streaming)
+        })
     }
 }

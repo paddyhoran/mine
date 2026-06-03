@@ -62,7 +62,7 @@ pub struct ToolResult {
 /// Converted to `TransportContext` when communicating with LLM providers.
 pub struct ExecutionContext {
     pub system_prompt: String,
-    pub messages: Vec<ExecutionMessage>,
+    messages: Vec<ExecutionMessage>,
     pub tools: Vec<Tool>,
 }
 
@@ -78,6 +78,16 @@ impl ExecutionContext {
     pub fn with_tool(mut self, tool: Tool) -> Self {
         self.tools.push(tool);
         self
+    }
+
+    /// The list of messages in the context in chronological order.
+    pub fn messages(&self) -> &[ExecutionMessage] {
+        &self.messages
+    }
+
+    /// Updates the context with a batch of new messages.
+    pub fn update_with_new_messages(&mut self, new_messages: &[ExecutionMessage]) {
+        self.messages.extend_from_slice(new_messages)
     }
 }
 

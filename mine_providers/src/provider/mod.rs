@@ -76,13 +76,13 @@ impl Provider {
     }
 
     /// Complete a request and return the full response.
-    pub async fn complete_direct(
+    pub async fn complete(
         &self,
         model: &Model,
         context: &TransportContext,
         options: CompletionOptions,
     ) -> Result<AssistantTransportMessage, ProviderError> {
-        self.inner.complete_direct(model, context, options).await
+        self.inner.complete(model, context, options).await
     }
 
     pub fn supports_feature(&self, feature: ProviderFeature) -> bool {

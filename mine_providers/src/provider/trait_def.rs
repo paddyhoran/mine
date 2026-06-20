@@ -14,7 +14,7 @@ pub trait ProviderTrait: Send + Sync {
     /// Complete a request and return the full response.
     ///
     /// Makes a single request to the LLM and returns the complete response.
-    async fn complete_direct(
+    async fn complete(
         &self,
         model: &Model,
         context: &TransportContext,

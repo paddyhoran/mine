@@ -89,7 +89,7 @@ impl ProviderTrait for BedrockProvider {
         "bedrock"
     }
 
-    async fn complete_direct(
+    async fn complete(
         &self,
         model: &Model,
         context: &TransportContext,

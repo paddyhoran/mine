@@ -22,7 +22,7 @@ pub async fn agent_loop(
         let lm_context = build_provider_context(context)?;
 
         let assistant_response = provider
-            .complete_direct(model, &lm_context, CompletionOptions::default())
+            .complete(model, &lm_context, CompletionOptions::default())
             .await
             .map_err(|e| format!("Provider error: {}", e))?;
 

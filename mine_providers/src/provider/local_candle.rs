@@ -128,7 +128,7 @@ impl ProviderTrait for LocalCandleProvider {
         "local-candle"
     }
 
-    async fn complete_direct(
+    async fn complete(
         &self,
         model: &Model,
         context: &TransportContext,

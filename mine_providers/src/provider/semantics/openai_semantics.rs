@@ -1,5 +1,7 @@
 use serde_json::{json, Value};
 
+use crate::types::Tool;
+
 pub enum OpenAIRequestMessage {
     System(String),
     Assistant(String),
@@ -28,6 +30,7 @@ impl OpenAIRequestMessage {
 #[derive(Default)]
 pub struct OpenAIRequestBuilder {
     messages: Vec<OpenAIRequestMessage>,
+    tools: Vec<Tool>,
 }
 
 impl OpenAIRequestBuilder {
@@ -55,12 +58,35 @@ impl OpenAIRequestBuilder {
         self
     }
 
+    /// Adds tools to the request.
+    pub fn with_tools(mut self, tools: Vec<Tool>) -> Self {
+        self.tools = tools;
+        self
+    }
+
     pub fn build(self, model_id: impl Into<String>, max_tokens: u64) -> Value {
         let messages: Vec<_> = self.messages.into_iter().map(|m| m.to_json()).collect();
-        json!({
+        
+        let mut body = json!({
             "model": model_id.into(),
             "messages": messages,
             "max_tokens": max_tokens
-        })
+        });
+        
+        // Add tools if present
+        if !self.tools.is_empty() {
+            body["tools"] = json!(self.tools.iter().map(|t| {
+                json!({
+                    "type": "function",
+                    "function": {
+                        "name": t.name,
+                        "description": t.description,
+                        "parameters": t.parameters
+                    }
+                })
+            }).collect::<Vec<_>>());
+        }
+        
+        body
     }
 }

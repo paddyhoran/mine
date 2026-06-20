@@ -67,6 +67,11 @@ impl OpenAIProvider {
             }
         }
 
+        // Add tools if present
+        if !context.tools.is_empty() {
+            builder = builder.with_tools(context.tools.clone());
+        }
+
         Ok(builder.build(&self.model_id, 4096))
     }
 }
@@ -81,7 +86,7 @@ impl ProviderTrait for OpenAIProvider {
         "openai"
     }
 
-    async fn complete_direct(
+    async fn complete(
         &self,
         model: &Model,
         context: &TransportContext,
@@ -120,10 +125,51 @@ impl ProviderTrait for OpenAIProvider {
             .and_then(|arr| arr.first())
             .ok_or_else(|| ProviderError::ParseError("Missing choices array".to_string()))?;
 
-        let text = choice["message"]["content"]
-            .as_str()
-            .ok_or_else(|| ProviderError::ParseError("Missing content".to_string()))?
-            .to_string();
+        let message = &choice["message"];
+        
+        // Parse content - can be text or tool calls
+        let mut content = Vec::new();
+        
+        // Check for text content
+        if let Some(text) = message["content"].as_str() {
+            if !text.is_empty() {
+                content.push(AssistantContent::Text {
+                    text: text.to_string(),
+                    text_signature: None,
+                });
+            }
+        }
+        
+        // Check for tool calls
+        if let Some(tool_calls_array) = message["tool_calls"].as_array() {
+            for tool_call in tool_calls_array {
+                if tool_call["type"].as_str() == Some("function") {
+                    let function = &tool_call["function"];
+                    let id = tool_call["id"]
+                        .as_str()
+                        .ok_or_else(|| ProviderError::ParseError("Missing tool call id".to_string()))?
+                        .to_string();
+                    let name = function["name"]
+                        .as_str()
+                        .ok_or_else(|| ProviderError::ParseError("Missing function name".to_string()))?
+                        .to_string();
+                    let arguments_str = function["arguments"]
+                        .as_str()
+                        .ok_or_else(|| ProviderError::ParseError("Missing function arguments".to_string()))?;
+                    
+                    // Parse arguments JSON string
+                    let arguments: serde_json::Value = serde_json::from_str(arguments_str)
+                        .map_err(|e| ProviderError::ParseError(format!("Invalid tool arguments JSON: {}", e)))?;
+                    
+                    content.push(AssistantContent::ToolCall(crate::types::ToolCall {
+                        id,
+                        name,
+                        arguments,
+                        thought_signature: None,
+                    }));
+                }
+            }
+        }
 
         let usage = Usage {
             input: response_json["usage"]["prompt_tokens"]
@@ -146,10 +192,7 @@ impl ProviderTrait for OpenAIProvider {
         };
 
         Ok(AssistantTransportMessage {
-            content: vec![AssistantContent::Text {
-                text,
-                text_signature: None,
-            }],
+            content,
             api: self.api_id().to_string(),
             provider: self.provider_id().to_string(),
             model: model.name.clone(),

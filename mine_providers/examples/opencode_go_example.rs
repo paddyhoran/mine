@@ -50,7 +50,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Generating response...\n");
 
     let response = provider
-        .complete_direct(&model, &context, CompletionOptions::default())
+        .complete(&model, &context, CompletionOptions::default())
         .await?;
 
     if let Some(AssistantContent::Text { text, .. }) = response.content.first() {

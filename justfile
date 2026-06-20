@@ -1,3 +1,4 @@
+default: clear fmt ex-opencode
 
 check: clear fmt clippy
 

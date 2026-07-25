@@ -71,10 +71,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let provider = Provider::new(model.provider.clone()).await?;
 
     let mut context = ExecutionContext::new(args.system)
-        .with_tool(tools::create_calculator_tool())
-        .with_tool(tools::create_echo_tool());
-
-    println!("User: {}\n", args.prompt);
+        .with_tool(tools::create_calculator_tool());
+        // .with_tool(tools::create_echo_tool())
+        // .with_tool(tools::create_read_tool());
 
     let messages = r#loop::agent_loop(args.prompt, &mut context, &provider, &model)
         .await

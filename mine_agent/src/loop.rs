@@ -54,30 +54,31 @@ pub async fn agent_loop(
 
         new_messages.push(assistant_msg.clone());
 
-        if assistant_response.stop_reason == StopReason::Error || tool_calls.is_empty() {
-            break;
-        }
+        // If there are tool calls execute them to augment the context and go back
+        // through the loop.  If not, exit.
+        if matches!(assistant_response.stop_reason, StopReason::ToolUse) {
+            for tool_call in tool_calls {
+                let tool = context
+                    .tools
+                    .iter()
+                    .find(|t| t.name == tool_call.name)
+                    .ok_or_else(|| format!("Tool not found: {}", tool_call.name))?;
 
-        for tool_call in tool_calls {
-            let tool = context
-                .tools
-                .iter()
-                .find(|t| t.name == tool_call.name)
-                .ok_or_else(|| format!("Tool not found: {}", tool_call.name))?;
+                let result = (tool.execute)(tool_call.arguments.clone())
+                    .map_err(|e| format!("Tool execution error: {}", e))?;
 
-            let result = (tool.execute)(tool_call.arguments.clone())
-                .map_err(|e| format!("Tool execution error: {}", e))?;
-
-            let tool_result_msg = ExecutionMessage::ToolResult {
-                tool_call_id: tool_call.id.clone(),
-                tool_name: tool_call.name.clone(),
-                content: result.content,
-                is_error: false,
-                timestamp: now(),
-            };
-
-            new_messages.push(tool_result_msg);
-        }
+                let tool_result_msg = ExecutionMessage::ToolResult {
+                    tool_call_id: tool_call.id.clone(),
+                    tool_name: tool_call.name.clone(),
+                    content: result.content,
+                    is_error: false,
+                    timestamp: now(),
+                };
+                new_messages.push(tool_result_msg);
+            }
+        } else {
+            break
+        };
     }
 
     context.update_with_new_messages(&new_messages);

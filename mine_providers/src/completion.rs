@@ -1,8 +1,4 @@
-/// Simplified options for LLM completion requests.
-///
-/// Contains only the essential parameters needed for non-streaming completion.
-/// Removed streaming-specific options (transport, cache_retention, session_id, etc.)
-/// that were not being used.
+/// Configuration type for model provider API options.
 #[derive(Debug, Clone, Default)]
 pub struct CompletionOptions {
     /// Temperature for sampling (0.0 = deterministic, higher = more random)
@@ -11,6 +7,6 @@ pub struct CompletionOptions {
     /// Maximum number of tokens to generate
     pub max_tokens: Option<u64>,
 
-    /// Optional metadata to attach to the request
-    pub metadata: Option<serde_json::Value>,
+    /// Indicates to the model provider that it has to select a tool to call.
+    pub tool_call_only: bool,
 }

@@ -16,13 +16,20 @@ pub async fn agent_loop(
         content: prompt,
         timestamp: now(),
     };
-    new_messages.push(user_msg);
+    new_messages.push(user_msg.clone());
+    context.update_with_new_messages(&[user_msg]);
 
     loop {
         let lm_context = build_provider_context(context)?;
 
+        let completion_options = CompletionOptions {
+            temperature: None,
+            max_tokens: None,
+            tool_call_only: !context.tools.is_empty(),
+        };
+
         let assistant_response = provider
-            .complete(model, &lm_context, CompletionOptions::default())
+            .complete(model, &lm_context, completion_options)
             .await
             .map_err(|e| format!("Provider error: {}", e))?;
 
@@ -53,6 +60,7 @@ pub async fn agent_loop(
         };
 
         new_messages.push(assistant_msg.clone());
+        context.update_with_new_messages(&[assistant_msg]);
 
         // If there are tool calls execute them to augment the context and go back
         // through the loop.  If not, exit.
@@ -74,14 +82,14 @@ pub async fn agent_loop(
                     is_error: false,
                     timestamp: now(),
                 };
-                new_messages.push(tool_result_msg);
+                new_messages.push(tool_result_msg.clone());
+                context.update_with_new_messages(&[tool_result_msg]);
             }
         } else {
             break
         };
     }
 
-    context.update_with_new_messages(&new_messages);
     Ok(new_messages)
 }
 

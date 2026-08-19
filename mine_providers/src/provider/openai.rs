@@ -7,7 +7,7 @@ use crate::context::TransportContext;
 use crate::error::ProviderError;
 use crate::provider::ProviderTrait;
 use crate::types::{AssistantContent, AssistantTransportMessage, Model, StopReason, Usage};
-use crate::OpenAIRequestBuilder;
+use crate::{CompletionOptions, OpenAIRequestBuilder};
 
 pub struct OpenAIProvider {
     client: Client,
@@ -35,6 +35,7 @@ impl OpenAIProvider {
     fn build_request_body(
         &self,
         context: &TransportContext,
+        options: &CompletionOptions,
     ) -> Result<serde_json::Value, ProviderError> {
         let mut builder = OpenAIRequestBuilder::default().add_system_prompt(&context.system_prompt);
 
@@ -72,7 +73,7 @@ impl OpenAIProvider {
             builder = builder.with_tools(context.tools.clone());
         }
 
-        Ok(builder.build(&self.model_id, 4096))
+        Ok(builder.build(&self.model_id, 4096, options.tool_call_only))
     }
 }
 
@@ -90,9 +91,9 @@ impl ProviderTrait for OpenAIProvider {
         &self,
         model: &Model,
         context: &TransportContext,
-        _options: crate::completion::CompletionOptions,
+        options: CompletionOptions,
     ) -> Result<AssistantTransportMessage, ProviderError> {
-        let body = self.build_request_body(context)?;
+        let body = self.build_request_body(context, &options)?;
 
         let url = format!("{}/chat/completions", self.base_url);
 

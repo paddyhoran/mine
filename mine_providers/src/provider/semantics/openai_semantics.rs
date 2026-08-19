@@ -64,7 +64,7 @@ impl OpenAIRequestBuilder {
         self
     }
 
-    pub fn build(self, model_id: impl Into<String>, max_tokens: u64) -> Value {
+    pub fn build(self, model_id: impl Into<String>, max_tokens: u64, tool_call_only: bool) -> Value {
         let messages: Vec<_> = self.messages.into_iter().map(|m| m.to_json()).collect();
         
         let mut body = json!({
@@ -85,6 +85,11 @@ impl OpenAIRequestBuilder {
                     }
                 })
             }).collect::<Vec<_>>());
+            
+            // Set tool_choice to "required" if tool_call_only is true
+            if tool_call_only {
+                body["tool_choice"] = json!("required");
+            }
         }
         
         body

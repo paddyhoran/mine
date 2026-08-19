@@ -31,7 +31,7 @@ struct Args {
     #[arg(
         short,
         long,
-        default_value = "deepseek-v4-pro",
+        default_value = "glm-5.2",
         help = "Model ID to use (or set OPENCODE_MODEL env var)"
     )]
     model: String,
